@@ -1,20 +1,26 @@
+#importing required libraries 
 import cv2
 import mediapipe as mp
 import numpy as np
 import math
 from cvzone.ClassificationModule import Classifier
 
+#defining model and labels file for the classifier
 classifier=Classifier("C:\\Users\\rahul\\Desktop\\DESKTOP\\Python projects\\handrecog\\keras_model.h5", "C:\\Users\\rahul\\Desktop\\DESKTOP\\Python projects\\handrecog\\labels.txt")
+
+#deploying mediapipe tools to map and track hand
 mpHands = mp.solutions.hands
 hand = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
 
+#setting up webcam
 cam=cv2.VideoCapture(0)
 
 ctr=0
 offset=20
 labels = ["Thumbs up", "Rock", "victory"]
 
+#treacking hand and mapping key points
 with mpHands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as hands:
 
     while True:
@@ -52,26 +58,11 @@ with mpHands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5) as
                             y_min = y
                     cv2.rectangle(image, (x_min-offset, y_min-offset), (x_max+offset, y_max+offset), (0, 255, 0), 2)
                     
-                    data=np.ones((300,300,3),np.uint8)*255
-
                     imgcrop=image[y_min-offset:y_max+offset,x_min-offset:x_max+offset]
-
-                    cropshape=imgcrop.shape
                     
-                    aspectRatio = h / w
- 
-                    if aspectRatio > 1:
-                        k = 300 / h
-                        wCal = math.ceil(k * w)
-                        wGap = math.ceil((300 - wCal) / 2)
-                        prediction, index = classifier.getPrediction(imgcrop, draw=False)
-                        print(prediction, index)
-            
-                    else:
-                        k = 300 / w
-                        hCal = math.ceil(k * h)
-                        hGap = math.ceil((300 - hCal) / 2)
-                        prediction, index = classifier.getPrediction(imgcrop, draw=False)
+                    #prediciting the gesture and displaying on image
+                    prediction, index = classifier.getPrediction(imgcrop, draw=False)
+          
                     cv2.putText(image, labels[index], (50,50), cv2.FONT_HERSHEY_COMPLEX, 1.7, (0, 0, 255), 2)
         cv2.imshow("Image", image)  
         cv2.waitKey(1)
